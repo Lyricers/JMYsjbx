@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ======================================================
-# 脚本名称：江某人的万能脚本箱
+# 脚本名称：江某人的万能脚本箱 (Full Version)
 # 核心作者：Gemini (for 江某人)
 # 博客地址：op.style
 # ======================================================
@@ -41,16 +41,22 @@ get_system_info() {
 # 3. 核心工具函数
 install_deps() {
     local deps=$@
-    [ "$OS_RAW" = "alpine" ] && apk add --no-cache $deps || {
-        [ -f /usr/bin/apt ] && apt update && apt install -y $deps
-        [ -f /usr/bin/yum ] && yum install -y $deps
-    }
+    echo -e "${YELLOW}正在安装依赖: ${BLUE}$deps${NC}"
+    if [ "$OS_RAW" = "alpine" ]; then
+        apk add --no-cache $deps
+    elif [ -f /usr/bin/apt ]; then
+        apt update && apt install -y $deps
+    elif [ -f /usr/bin/yum ]; then
+        yum install -y $deps
+    elif [ -f /usr/bin/dnf ]; then
+        dnf install -y $deps
+    fi
 }
 
 run_script() {
     local name=$1; local github=$2; local command=$3; local is_alpine=$4
     if [ "$is_alpine" = "true" ] && [ "$OS_RAW" != "alpine" ]; then
-        echo -e "${RED}❌ 该脚本仅支持 Alpine 系统！${NC}"; read -n 1 -s -r; return
+        echo -e "${RED}❌ 该脚本仅支持 Alpine 系统！当前：$OS_INFO${NC}"; read -n 1 -s -r; return
     fi
     clear
     echo -e "${CYAN}----------------------------------------------------------------${NC}"
@@ -60,100 +66,23 @@ run_script() {
     echo -e "\n${YELLOW}执行完毕。${NC}"; read -n 1 -s -r -p "按任意键返回..."
 }
 
-# --- 4. 实用工具集 ---
+# --- 4. 功能分类菜单 ---
 
-# DNS 管理器 (江某人定制)
-dns_manager() {
-    while true; do
-        clear
-        echo -e "${BLUE}>>> [ DNS 深度管理器 ]${NC}"
-        echo -e "${CYAN}当前配置内容 (/etc/resolv.conf):${NC}"
-        grep "nameserver" /etc/resolv.conf | nl -w2 -s'. '
-        echo -e "${CYAN}----------------------------------------------------------------${NC}"
-        echo -e " 1. 添加单个 DNS (例如 8.8.8.8)"
-        echo -e " 2. 批量添加 DNS (空格或逗号分隔)"
-        echo -e " 3. 修改特定行 DNS"
-        echo -e " 4. 移动行位置 (向上/向下)"
-        echo -e " 5. 一键添加公共 DNS (Google/Cloudflare/Ali)"
-        echo -e " 6. 自动纠错并清理拼写错误"
-        echo -e " 7. 一键清空所有配置"
-        echo -e " 0. 返回主菜单"
-        echo -e "${CYAN}----------------------------------------------------------------${NC}"
-        read -p "选择操作: " dns_choice
-        case $dns_choice in
-            1) read -p "输入 IP: " ip; echo "nameserver $ip" >> /etc/resolv.conf ;;
-            2) read -p "输入多个 IP (逗号或空格隔开): " ips
-               for i in ${ips//,/ }; do echo "nameserver $i" >> /etc/resolv.conf; done ;;
-            3) read -p "修改哪一行? " line_num; read -p "新 IP: " new_ip
-               sed -i "${line_num}s/nameserver .*/nameserver $new_ip/" /etc/resolv.conf ;;
-            4) read -p "操作行号: " l; read -p "方向(1.向上 2.向下): " d
-               [[ $d -eq 1 ]] && { sed -i "${l}h;${l}d;$(($l-1))G" /etc/resolv.conf; } || { sed -i "${l}h;${l}d;$(($l+1))G" /etc/resolv.conf; } ;;
-            5) echo -e "nameserver 8.8.8.8\nnameserver 1.1.1.1\nnameserver 223.5.5.5" >> /etc/resolv.conf ;;
-            6) sed -i '/^nameserver/!d' /etc/resolv.conf; sed -i 's/^[ \t]*//;s/[ \t]*$//' /etc/resolv.conf ;;
-            7) > /etc/resolv.conf ;;
-            0) break ;;
-        esac
-    done
-}
-
-# BBR & TPS 调优
-bbr_tuning() {
-    clear
-    echo -e "${BLUE}>>> [ BBR & 网络 TPS 调优 ]${NC}"
-    echo -e " 1. 开启 BBR (标准内核支持)"
-    echo -e " 2. 关闭 BBR"
-    echo -e " 3. 系统 TPS 网络参数深度优化"
-    echo -e " 0. 返回"
-    read -p "选择: " b_choice
-    case $b_choice in
-        1)
-            echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
-            echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
-            sysctl -p
-            echo -e "${GREEN}BBR 已开启！${NC}"
-            echo -e "${YELLOW}更多暴力 BBR 指令请参考：${BLUE}https://omnitt.com/${NC}"
-            sleep 3 ;;
-        2)
-            sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
-            sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
-            sysctl -p ;;
-        3)
-            echo "net.ipv4.tcp_fastopen=3" >> /etc/sysctl.conf
-            echo "net.ipv4.tcp_slow_start_after_idle=0" >> /etc/sysctl.conf
-            sysctl -p
-            echo -e "${GREEN}网络 TPS 已调优！${NC}" ;;
-    esac
-}
-
-# 额外福利：Swap 管理
-swap_manager() {
-    clear
-    echo -e "${BLUE}>>> [ Swap 虚拟内存管理 ]${NC}"
-    echo -e " 1. 添加 Swap"
-    echo -e " 2. 删除 Swap"
-    read -p "选择: " s_choice
-    case $s_choice in
-        1)
-            read -p "请输入 Swap 大小 (MB, 建议为物理内存 2 倍): " size
-            dd if=/dev/zero of=/swapfile bs=1M count=$size
-            chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
-            echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
-            echo -e "${GREEN}Swap 设置成功！${NC}" ;;
-        2)
-            swapoff /swapfile && rm -f /swapfile
-            sed -i '/\/swapfile swap/d' /etc/fstab
-            echo -e "${YELLOW}Swap 已卸载。${NC}" ;;
-    esac
-    sleep 2
-}
-
-# --- 5. 菜单结构 ---
-
+# 4.1 新机体检
 new_machine_check() {
     while true; do
         clear; show_header
         echo -e "${BLUE}>>> [ 新机体检项目 ]${NC}"
-        echo -e " 1. IP 质量检测 (xykt/IPQuality)\n 2. 网络质量检测 (xykt/NetQuality)\n 3. 硬件质量检测 (xykt/HardwareQuality)\n 4. 三网回程路由测试 (zhanghanyun/backtrace)\n 5. NodeQuality 检测脚本\n 6. 融合怪测评 - GO版本\n 7. 流媒体解锁检测\n 8. “更准确”流媒体解锁检测\n 0. 返回"
+        echo -e " 1. IP 质量检测 (xykt/IPQuality)"
+        echo -e " 2. 网络质量检测 (xykt/NetQuality)"
+        echo -e " 3. 硬件质量检测 (xykt/HardwareQuality)"
+        echo -e " 4. 三网回程路由测试 (zhanghanyun/backtrace)"
+        echo -e " 5. NodeQuality 检测脚本"
+        echo -e " 6. 融合怪测评 - GO版本"
+        echo -e " 7. 流媒体解锁检测 (HsukqiLee)"
+        echo -e " 8. “更准确”流媒体解锁检测 (1-stream)"
+        echo -e " 0. 返回主菜单"
+        echo -e "${CYAN}----------------------------------------------------------------${NC}"
         read -p "选择: " c
         case $c in
             1) run_script "IP质量" "xykt/IPQuality" "bash <(curl -Ls https://IP.Check.Place) -y" "false" ;;
@@ -169,11 +98,18 @@ new_machine_check() {
     done
 }
 
+# 4.2 科学上网
 science_tools() {
     while true; do
         clear; show_header
         echo -e "${BLUE}>>> [ 科学上网工具 ]${NC}"
-        echo -e " 1. 原版 3x-ui (2.6.2)\n 2. Alpine版 3x-ui (仅限Alpine)\n 3. Sing-box-yg 精装桶 (慎用)\n 4. yoyo sing-box 一键\n 5. 欢妹 3X-UI-Alpine (仅限Alpine)\n 0. 返回"
+        echo -e " 1. 原版 3x-ui (v2.6.2)"
+        echo -e " 2. 适配 Alpine 版旧 3x-ui ${RED}(仅限Alpine)${NC}"
+        echo -e " 3. Sing-box-yg 精装桶 ${RED}(慎用)${NC}"
+        echo -e " 4. yoyo sing-box 一键部署"
+        echo -e " 5. 欢妹 3X-UI-Alpine ${RED}(仅限Alpine)${NC}"
+        echo -e " 0. 返回主菜单"
+        echo -e "${CYAN}----------------------------------------------------------------${NC}"
         read -p "选择: " c
         case $c in
             1) run_script "3x-ui" "MHSanaei/3x-ui" "bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.6.2" "false" ;;
@@ -186,20 +122,90 @@ science_tools() {
     done
 }
 
+# 4.3 可视化面板 (江某人，都在这里！)
+panel_tools() {
+    while true; do
+        clear; show_header
+        echo -e "${BLUE}>>> [ 可视化管理面板 ]${NC}"
+        echo -e " 1. 1Panel 官方版 (推荐：Docker 容器化管理)"
+        echo -e " 2. 宝塔面板 (国内流行版本)"
+        echo -e " 3. aaPanel (宝塔国际版：无需手机号)"
+        echo -e " 4. CasaOS (超高颜值极简系统)"
+        echo -e " 0. 返回主菜单"
+        echo -e "${CYAN}----------------------------------------------------------------${NC}"
+        read -p "选择: " c
+        case $c in
+            1) run_script "1Panel" "1panel.cn" "curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh" "false" ;;
+            2) run_script "宝塔面板" "bt.cn" "if [ -f /usr/bin/curl ];then curl -sSO https://download.bt.cn/install/install_panel.sh;else wget -O install_panel.sh https://download.bt.cn/install/install_panel.sh;fi && bash install_panel.sh ed8484bec" "false" ;;
+            3) run_script "aaPanel" "aapanel.com" "wget -O install.sh http://www.aapanel.com/script/install_6.0_en.sh && bash install.sh" "false" ;;
+            4) run_script "CasaOS" "casaos.io" "curl -fsSL https://get.casaos.io | bash" "false" ;;
+            0) break ;;
+        esac
+    done
+}
+
+# 4.4 实用工具
 utility_tools() {
     while true; do
         clear; show_header
-        echo -e "${BLUE}>>> [ 实用工具箱 ]${NC}"
-        echo -e " 1. DNS 深度管理\n 2. BBR & TPS 调优\n 3. Swap 虚拟内存管理\n 4. 修改 SSH 端口 (防扫爆破)\n 0. 返回"
+        echo -e "${BLUE}>>> [ 实用运维工具箱 ]${NC}"
+        echo -e " 1. DNS 深度管理 (查看/添加/排序/纠错)"
+        echo -e " 2. BBR & TPS 调优 (开启/关闭/进阶优化)"
+        echo -e " 3. Swap 虚拟内存管理 (添加/删除)"
+        echo -e " 4. 修改 SSH 端口 (加固服务器)"
+        echo -e " 0. 返回主菜单"
+        echo -e "${CYAN}----------------------------------------------------------------${NC}"
         read -p "选择: " c
         case $c in
             1) dns_manager ;;
             2) bbr_tuning ;;
             3) swap_manager ;;
-            4) read -p "输入新端口: " port; sed -i "s/#Port 22/Port $port/g;s/Port .*/Port $port/g" /etc/ssh/sshd_config; systemctl restart sshd; echo -e "${GREEN}端口已改为 $port，请确保防火墙已放行！${NC}"; sleep 3 ;;
+            4) read -p "输入新端口: " port; sed -i "s/#Port 22/Port $port/g;s/Port .*/Port $port/g" /etc/ssh/sshd_config; systemctl restart sshd; echo -e "${GREEN}端口已改为 $port，请放行防火墙！${NC}"; sleep 2 ;;
             0) break ;;
         esac
     done
+}
+
+# --- 5. 深度逻辑函数 ---
+
+dns_manager() {
+    while true; do
+        clear; echo -e "${BLUE}>>> DNS 管理器${NC}\n${CYAN}当前配置:${NC}"; grep "nameserver" /etc/resolv.conf | nl -w2 -s'. '
+        echo -e "----------------------------------\n1.添加单条 2.批量添加 3.修改行 4.移动行 5.公共DNS 6.纠错 7.清空 0.返回"
+        read -p "操作: " d
+        case $d in
+            1) read -p "IP: " ip; echo "nameserver $ip" >> /etc/resolv.conf ;;
+            2) read -p "IPs(逗号隔开): " ips; for i in ${ips//,/ }; do echo "nameserver $i" >> /etc/resolv.conf; done ;;
+            3) read -p "行号: " l; read -p "新IP: " ni; sed -i "${l}s/nameserver .*/nameserver $ni/" /etc/resolv.conf ;;
+            4) read -p "行号: " l; read -p "方向(1.上 2.下): " dr; [[ $dr -eq 1 ]] && { sed -i "${l}h;${l}d;$(($l-1))G" /etc/resolv.conf; } || { sed -i "${l}h;${l}d;$(($l+1))G" /etc/resolv.conf; } ;;
+            5) echo -e "nameserver 8.8.8.8\nnameserver 1.1.1.1" >> /etc/resolv.conf ;;
+            6) sed -i '/^nameserver/!d' /etc/resolv.conf; sed -i 's/^[ \t]*//;s/[ \t]*$//' /etc/resolv.conf ;;
+            7) > /etc/resolv.conf ;;
+            0) break ;;
+        esac
+    done
+}
+
+bbr_tuning() {
+    clear; echo -e "1.开启BBR 2.关闭BBR 3.TPS调优"; read -p "选择: " b
+    if [ "$b" -eq 1 ]; then
+        echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
+        echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
+        sysctl -p; echo -e "${GREEN}BBR开启！进阶参考：https://omnitt.com/${NC}"; sleep 3
+    elif [ "$b" -eq 2 ]; then
+        sed -i '/bbr/d;/fq/d' /etc/sysctl.conf; sysctl -p
+    fi
+}
+
+swap_manager() {
+    clear; echo -e "1.添加 2.删除"; read -p "选择: " s
+    if [ "$s" -eq 1 ]; then
+        read -p "大小(MB): " sz; dd if=/dev/zero of=/swapfile bs=1M count=$sz
+        chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+        echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
+    elif [ "$s" -eq 2 ]; then
+        swapoff /swapfile; rm -f /swapfile; sed -i '/\/swapfile/d' /etc/fstab
+    fi
 }
 
 # --- 6. 统一 UI ---
@@ -223,19 +229,25 @@ main_menu() {
     while true; do
         get_system_info; clear; show_header
         echo -e "${GREEN}主菜单功能:${NC}"
-        echo -e " 1. 安装必备基础命令\n 2. 新机体检项目\n 3. 科学上网工具\n 4. 可视化面板安装\n 5. 实用运维工具 (DNS/BBR/Swap)\n 0. 退出脚本"
+        echo -e " 1. 安装必备基础命令 (bash/curl/git等)"
+        echo -e " 2. 新机体检项目 (IP/网络/硬件/测评)"
+        echo -e " 3. 科学上网工具 (3x-ui/Sing-box等)"
+        echo -e " 4. 可视化面板安装 (1Panel/宝塔等)"
+        echo -e " 5. 实用运维工具 (DNS/BBR/Swap/SSH)"
+        echo -e " 0. 退出脚本"
         echo ""; show_footer
         read -p "输入数字: " choice
         case $choice in
-            1) install_deps "bash curl wget git sudo lsof ca-certificates gzip" ;;
+            1) install_deps "bash curl wget git sudo lsof ca-certificates gzip unzip" ;;
             2) new_machine_check ;;
             3) science_tools ;;
-            4) run_script "1Panel" "1panel.cn" "curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh" "false" ;;
+            4) panel_tools ;;
             5) utility_tools ;;
-            0) exit 0 ;;
+            0) echo -e "${GREEN}感谢使用，江某人再见！${NC}"; exit 0 ;;
             *) sleep 1 ;;
         esac
     done
 }
 
+# 启动
 main_menu
