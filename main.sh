@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ======================================================
-# 脚本名称：江某人的万能脚本箱 (Pro UI Edition)
+# 脚本名称：江某人的万能脚本箱 (v3.0 Pro Edition)
 # 核心作者：Gemini (for 江某人)
 # 博客地址：op.style
 # ======================================================
@@ -15,14 +15,13 @@ PURPLE='\033[35m'
 CYAN='\033[36m'
 WHITE='\033[37m'
 BOLD='\033[1m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # 检查 Root 权限
 [[ $(id -u) != "0" ]] && echo -e "${RED}❌ 错误: 必须使用 root 权限运行此脚本！${NC}" && exit 1
 
 # --- 2. 系统信息采集 ---
 get_system_info() {
-    # 系统内核
     if [ -f /etc/os-release ]; then
         OS_RAW=$(cat /etc/os-release | grep -w "ID" | cut -d= -f2 | tr -d '"')
         OS_INFO=$(cat /etc/os-release | grep -w "PRETTY_NAME" | cut -d= -f2 | tr -d '"')
@@ -30,7 +29,6 @@ get_system_info() {
         OS_RAW="unknown"; OS_INFO=$(uname -srm)
     fi
     
-    # 内存使用率
     if command -v free >/dev/null 2>&1; then
         MEM_USED=$(free -m | awk '/Mem:/ { print $3 }')
         MEM_TOTAL=$(free -m | awk '/Mem:/ { print $2 }')
@@ -39,11 +37,9 @@ get_system_info() {
         MEM_INFO="未知"
     fi
 
-    # 网络信息 (带超时防止卡顿)
     IPV4=$(curl -s4 --connect-timeout 3 ifconfig.me || echo "N/A")
     IPV6=$(curl -s6 --connect-timeout 3 ifconfig.me || echo "N/A")
     
-    # 地理位置
     IP_JSON=$(curl -s --connect-timeout 3 http://ip-api.com/json/)
     if [[ $IP_JSON == *"success"* ]]; then
         COUNTRY=$(echo $IP_JSON | sed 's/.*"country":"\([^"]*\)".*/\1/')
@@ -51,8 +47,7 @@ get_system_info() {
         ISP=$(echo $IP_JSON | sed 's/.*"isp":"\([^"]*\)".*/\1/')
         LOCATION="$COUNTRY - $CITY"
     else
-        LOCATION="未知位置"
-        ISP="未知运营商"
+        LOCATION="未知位置"; ISP="未知运营商"
     fi
 }
 
@@ -87,7 +82,7 @@ run_script() {
     echo -e "\n${GREEN}✅ 执行完毕。${NC}"; read -n 1 -s -r -p "按任意键返回主菜单..."
 }
 
-# --- 4. 核心功能菜单 ---
+# --- 4. 功能分类菜单 ---
 
 # 4.1 新机体检
 new_machine_check() {
@@ -100,19 +95,19 @@ new_machine_check() {
         echo -e "   ${GREEN}3.${NC} 💻 硬件质量检测 (xykt/HardwareQuality)"
         echo -e "   ${GREEN}4.${NC} 📡 三网回程路由测试 (Backtrace)"
         echo -e "   ${GREEN}5.${NC} ⚡ NodeQuality 节点检测"
-        echo -e "   ${GREEN}6.${NC} 👹 融合怪测评 - GO版本 (Spiritlhl)"
+        echo -e "   ${GREEN}6.${NC} 👹 融合怪测评 - GO版本"
         echo -e "   ${GREEN}7.${NC} 🎬 流媒体解锁检测 (HsukqiLee)"
         echo -e "   ${GREEN}8.${NC} 🎥 “更准确”流媒体解锁检测 (1-stream)"
         echo -e "   ${GREEN}0.${NC} 🔙 返回主菜单"
         echo ""
         read -p "   请选择操作 [0-8]: " c
         case $c in
-            1) run_script "IP 质量检测" "xykt/IPQuality" "bash <(curl -Ls https://IP.Check.Place) -y" "false" ;;
-            2) run_script "网络质量检测" "xykt/NetQuality" "bash <(curl -Ls https://Net.Check.Place) -y" "false" ;;
-            3) run_script "硬件质量检测" "xykt/HardwareQuality" "bash <(curl -Ls https://Hardware.Check.Place) -y" "false" ;;
-            4) run_script "三网回程测试" "zhanghanyun/backtrace" "curl https://raw.githubusercontent.com/zhanghanyun/backtrace/main/install.sh -sSf | sh" "false" ;;
+            1) run_script "IP质量" "xykt/IPQuality" "bash <(curl -Ls https://IP.Check.Place) -y" "false" ;;
+            2) run_script "网络质量" "xykt/NetQuality" "bash <(curl -Ls https://Net.Check.Place) -y" "false" ;;
+            3) run_script "硬件质量" "xykt/HardwareQuality" "bash <(curl -Ls https://Hardware.Check.Place) -y" "false" ;;
+            4) run_script "三网回程" "zhanghanyun/backtrace" "curl https://raw.githubusercontent.com/zhanghanyun/backtrace/main/install.sh -sSf | sh" "false" ;;
             5) run_script "NodeQuality" "LloydAsp/NodeQuality" "bash <(curl -sL https://run.NodeQuality.com)" "false" ;;
-            6) run_script "融合怪测评-GO" "oneclickvirt/ecs" "export noninteractive=true && curl -L https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/ecs/master/goecs.sh -o goecs.sh && chmod +x goecs.sh && ./goecs.sh install && goecs" "false" ;;
+            6) run_script "融合怪测评" "oneclickvirt/ecs" "export noninteractive=true && curl -L https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/ecs/master/goecs.sh -o goecs.sh && chmod +x goecs.sh && ./goecs.sh install && goecs" "false" ;;
             7) run_script "流媒体解锁" "HsukqiLee/MediaUnlockTest" "bash <(curl -Ls unlock.icmp.ing/scripts/test.sh)" "false" ;;
             8) run_script "流媒体解锁(深)" "1-stream/Check" "bash <(curl -L -s https://raw.githubusercontent.com/1-stream/RegionRestrictionCheck/main/check.sh)" "false" ;;
             0) break ;;
@@ -127,10 +122,10 @@ science_tools() {
         echo -e "${BOLD}${CYAN}   >>> 🪜 科学上网工具 ${NC}"
         echo -e "${CYAN}   --------------------------------------------------------${NC}"
         echo -e "   ${GREEN}1.${NC} 📦 原版 3x-ui (v2.6.2)"
-        echo -e "   ${GREEN}2.${NC} ❄️ 适配 Alpine 版旧 3x-ui ${RED}(仅限Alpine)${NC}"
-        echo -e "   ${GREEN}3.${NC} 📦 Sing-box-yg 精装桶 ${RED}(争议脚本/慎用)${NC}"
+        echo -e "   ${GREEN}2.${NC} ❄️  Alpine 版旧 3x-ui"
+        echo -e "   ${GREEN}3.${NC} 📦 Sing-box-yg 精装桶"
         echo -e "   ${GREEN}4.${NC} 🚀 yoyo sing-box 一键部署"
-        echo -e "   ${GREEN}5.${NC} ❄️ 欢妹 3X-UI-Alpine ${RED}(仅限Alpine)${NC}"
+        echo -e "   ${GREEN}5.${NC} ❄️  欢妹 3X-UI-Alpine"
         echo -e "   ${GREEN}0.${NC} 🔙 返回主菜单"
         echo ""
         read -p "   请选择操作 [0-5]: " c
@@ -151,16 +146,16 @@ panel_tools() {
         clear; show_header
         echo -e "${BOLD}${CYAN}   >>> 🖥️  可视化管理面板 ${NC}"
         echo -e "${CYAN}   --------------------------------------------------------${NC}"
-        echo -e "   ${GREEN}1.${NC} 🐳 1Panel 官方版 (推荐：现代化 Docker 管理)"
-        echo -e "   ${GREEN}2.${NC} 🏰 宝塔面板 (国内流行版本)"
-        echo -e "   ${GREEN}3.${NC} 🌐 aaPanel (宝塔国际版：无需手机号)"
-        echo -e "   ${GREEN}4.${NC} 🏠 CasaOS (超高颜值极简家庭云)"
+        echo -e "   ${GREEN}1.${NC} 🐳 1Panel 官方版"
+        echo -e "   ${GREEN}2.${NC} 🏰 宝塔面板"
+        echo -e "   ${GREEN}3.${NC} 🌐 aaPanel (国际版)"
+        echo -e "   ${GREEN}4.${NC} 🏠 CasaOS"
         echo -e "   ${GREEN}0.${NC} 🔙 返回主菜单"
         echo ""
         read -p "   请选择操作 [0-4]: " c
         case $c in
             1) run_script "1Panel" "1panel.cn" "curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh" "false" ;;
-            2) run_script "宝塔面板" "bt.cn" "if [ -f /usr/bin/curl ];then curl -sSO https://download.bt.cn/install/install_panel.sh;else wget -O install_panel.sh https://download.bt.cn/install/install_panel.sh;fi && bash install_panel.sh ed8484bec" "false" ;;
+            2) run_script "宝塔" "bt.cn" "curl -sSO https://download.bt.cn/install/install_panel.sh && bash install_panel.sh ed8484bec" "false" ;;
             3) run_script "aaPanel" "aapanel.com" "wget -O install.sh http://www.aapanel.com/script/install_6.0_en.sh && bash install.sh" "false" ;;
             4) run_script "CasaOS" "casaos.io" "curl -fsSL https://get.casaos.io | bash" "false" ;;
             0) break ;;
@@ -168,17 +163,17 @@ panel_tools() {
     done
 }
 
-# 4.4 实用工具 (已添加哪吒卸载)
+# 4.4 实用运维工具
 utility_tools() {
     while true; do
         clear; show_header
         echo -e "${BOLD}${CYAN}   >>> 🛠️  实用运维工具箱 ${NC}"
         echo -e "${CYAN}   --------------------------------------------------------${NC}"
-        echo -e "   ${GREEN}1.${NC} 🌐 DNS 深度管理 (添加/排序/纠错)"
-        echo -e "   ${GREEN}2.${NC} 🚀 BBR & TPS 调优 (开启/关闭/进阶)"
-        echo -e "   ${GREEN}3.${NC} 🧠 Swap 虚拟内存管理 (添加/删除)"
-        echo -e "   ${GREEN}4.${NC} 🛡️ 修改 SSH 端口 (防爆破)"
-        echo -e "   ${GREEN}5.${NC} 🗑️ 哪吒探针 Agent 卸载工具 (Nezha-cleaner)"
+        echo -e "   ${GREEN}1.${NC} 🌐 DNS 深度管理"
+        echo -e "   ${GREEN}2.${NC} 🚀 BBR & TPS 调优"
+        echo -e "   ${GREEN}3.${NC} 🧠 Swap 虚拟内存管理"
+        echo -e "   ${GREEN}4.${NC} 🛡️  修改 SSH 端口"
+        echo -e "   ${GREEN}5.${NC} 🗑️  哪吒探针 Agent 卸载工具"
         echo -e "   ${GREEN}0.${NC} 🔙 返回主菜单"
         echo ""
         read -p "   请选择操作 [0-5]: " c
@@ -186,25 +181,44 @@ utility_tools() {
             1) dns_manager ;;
             2) bbr_tuning ;;
             3) swap_manager ;;
-            4) read -p "输入新端口: " port; sed -i "s/#Port 22/Port $port/g;s/Port .*/Port $port/g" /etc/ssh/sshd_config; systemctl restart sshd; echo -e "${GREEN}端口已改为 $port，请放行防火墙！${NC}"; sleep 2 ;;
-            5) run_script "哪吒探针卸载" "everett7623/Nezha-cleaner" "bash <(curl -s https://raw.githubusercontent.com/everett7623/Nezha-cleaner/main/nezha-agent-cleaner.sh)" "false" ;;
+            4) read -p "输入新端口: " p; sed -i "s/Port .*/Port $p/" /etc/ssh/sshd_config; systemctl restart sshd; sleep 2 ;;
+            5) run_script "哪吒卸载" "everett7623/Nezha-cleaner" "bash <(curl -s https://raw.githubusercontent.com/everett7623/Nezha-cleaner/main/nezha-agent-cleaner.sh)" "false" ;;
             0) break ;;
         esac
     done
 }
 
-# --- 5. 深度逻辑函数 ---
+# 4.5 第三方脚本聚合 (新增)
+third_party_toolboxes() {
+    while true; do
+        clear; show_header
+        echo -e "${BOLD}${CYAN}   >>> 📦 第三方聚合脚本箱 ${NC}"
+        echo -e "${CYAN}   --------------------------------------------------------${NC}"
+        echo -e "   ${GREEN}1.${NC} 🏎️  BBR v3 优化脚本 (Ultimate Edition v4.7.0)"
+        echo -e "   ${GREEN}0.${NC} 🔙 返回主菜单"
+        echo ""
+        read -p "   请选择操作 [0-1]: " c
+        case $c in
+            1) 
+               install_deps "curl"
+               run_script "BBR v3 Ultimate" "Eric86777/vps-tcp-tune" "bash <(curl -fsSL \"https://raw.githubusercontent.com/Eric86777/vps-tcp-tune/main/install-alias.sh?\$(date +%s)\") && source ~/.bashrc" "false"
+               ;;
+            0) break ;;
+        esac
+    done
+}
 
+# --- 5. 深度逻辑函数 (DNS/BBR/Swap) ---
 dns_manager() {
     while true; do
-        clear; echo -e "${CYAN}=== DNS 管理器 (当前配置) ===${NC}"; grep "nameserver" /etc/resolv.conf | nl -w2 -s'. '
-        echo -e "----------------------------------\n1.添加单条 2.批量添加 3.修改行 4.移动行 5.公共DNS 6.纠错 7.清空 0.返回"
+        clear; echo -e "${CYAN}=== DNS 管理器 ===${NC}"; grep "nameserver" /etc/resolv.conf | nl -w2 -s'. '
+        echo -e "----------------------------------\n1.添加 2.批量 3.修改 4.移动 5.公共 6.纠错 7.清空 0.返回"
         read -p "操作: " d
         case $d in
             1) read -p "IP: " ip; echo "nameserver $ip" >> /etc/resolv.conf ;;
-            2) read -p "IPs(逗号隔开): " ips; for i in ${ips//,/ }; do echo "nameserver $i" >> /etc/resolv.conf; done ;;
-            3) read -p "行号: " l; read -p "新IP: " ni; sed -i "${l}s/nameserver .*/nameserver $ni/" /etc/resolv.conf ;;
-            4) read -p "行号: " l; read -p "方向(1.上 2.下): " dr; [[ $dr -eq 1 ]] && { sed -i "${l}h;${l}d;$(($l-1))G" /etc/resolv.conf; } || { sed -i "${l}h;${l}d;$(($l+1))G" /etc/resolv.conf; } ;;
+            2) read -p "IPs: " ips; for i in ${ips//,/ }; do echo "nameserver $i" >> /etc/resolv.conf; done ;;
+            3) read -p "行: " l; read -p "新IP: " ni; sed -i "${l}s/nameserver .*/nameserver $ni/" /etc/resolv.conf ;;
+            4) read -p "行: " l; read -p "向(1.上 2.下): " dr; [[ $dr -eq 1 ]] && { sed -i "${l}h;${l}d;$(($l-1))G" /etc/resolv.conf; } || { sed -i "${l}h;${l}d;$(($l+1))G" /etc/resolv.conf; } ;;
             5) echo -e "nameserver 8.8.8.8\nnameserver 1.1.1.1" >> /etc/resolv.conf ;;
             6) sed -i '/^nameserver/!d' /etc/resolv.conf; sed -i 's/^[ \t]*//;s/[ \t]*$//' /etc/resolv.conf ;;
             7) > /etc/resolv.conf ;;
@@ -218,14 +232,14 @@ bbr_tuning() {
     if [ "$b" -eq 1 ]; then
         echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
         echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
-        sysctl -p; echo -e "${GREEN}BBR开启！进阶参考：https://omnitt.com/${NC}"; sleep 3
+        sysctl -p; echo -e "${GREEN}BBR开启！参考：https://omnitt.com/${NC}"; sleep 3
     elif [ "$b" -eq 2 ]; then
         sed -i '/bbr/d;/fq/d' /etc/sysctl.conf; sysctl -p
     fi
 }
 
 swap_manager() {
-    clear; echo -e "${CYAN}=== Swap 管理 ===${NC}\n1.添加 2.删除"; read -p "选择: " s
+    clear; echo -e "1.添加 2.删除"; read -p "选择: " s
     if [ "$s" -eq 1 ]; then
         read -p "大小(MB): " sz; dd if=/dev/zero of=/swapfile bs=1M count=$sz
         chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
@@ -235,16 +249,14 @@ swap_manager() {
     fi
 }
 
-# --- 6. 统一 UI 界面 ---
-
+# --- 6. UI 组件 ---
 show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}J's Toolbox v2.0 ${NC}"
+    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v3.0 ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "   💻 ${BOLD}系统信息:${NC} $OS_INFO"
-    echo -e "   🧠 ${BOLD}内存占用:${NC} $MEM_INFO"
-    echo -e "   🌍 ${BOLD}地理位置:${NC} $LOCATION ($ISP)"
-    echo -e "   📡 ${BOLD}网络地址:${NC} ${BLUE}$IPV4${NC} (IPv4)"
+    echo -e "   💻 ${BOLD}系统:${NC} $OS_INFO   🧠 ${BOLD}内存:${NC} $MEM_INFO"
+    echo -e "   🌍 ${BOLD}位置:${NC} $LOCATION ($ISP)"
+    echo -e "   📡 ${BOLD}网络:${NC} ${BLUE}$IPV4${NC} (IPv4) | ${BLUE}${IPV6:0:15}...${NC} (IPv6)"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
@@ -256,32 +268,32 @@ show_footer() {
 
 main_menu() {
     while true; do
-        get_system_info
-        clear
-        show_header
+        get_system_info; clear; show_header
         echo -e "   ${BOLD}请选择功能模块：${NC}"
         echo -e "${CYAN}   --------------------------------------------------------${NC}"
         echo -e "   ${GREEN}1.${NC} 🔧 安装必备基础命令 (curl/wget/git/gzip)"
-        echo -e "   ${GREEN}2.${NC} 📊 新机体检项目 (IP/网络/硬件/流媒体)"
-        echo -e "   ${GREEN}3.${NC} 🪜 科学上网工具 (3x-ui/Sing-box/Alpine适配)"
-        echo -e "   ${GREEN}4.${NC} 🖥️  可视化面板安装 (1Panel/宝塔/CasaOS)"
+        echo -e "   ${GREEN}2.${NC} 📊 新机体检项目 (IP/网络/硬件/测评)"
+        echo -e "   ${GREEN}3.${NC} 🪜 科学上网工具 (3x-ui/Sing-box等)"
+        echo -e "   ${GREEN}4.${NC} 🖥️  可视化面板安装 (1Panel/宝塔/aaPanel)"
         echo -e "   ${GREEN}5.${NC} 🛠️  实用运维工具 (DNS/BBR/Swap/哪吒卸载)"
+        echo -e "   ${GREEN}6.${NC} 📦 第三方脚本聚合 ${YELLOW}(BBR v3 Ultimate)${NC}"
         echo -e "${CYAN}   --------------------------------------------------------${NC}"
         echo -e "   ${GREEN}0.${NC} ❌ 退出脚本"
         echo ""
         show_footer
-        read -p "   请输入数字 [0-5]: " choice
+        read -p "   请输入数字 [0-6]: " choice
         case $choice in
             1) install_deps "bash curl wget git sudo lsof ca-certificates gzip" ;;
             2) new_machine_check ;;
             3) science_tools ;;
             4) panel_tools ;;
             5) utility_tools ;;
-            0) echo -e "\n${GREEN}👋 感谢使用，再见，江某人！${NC}"; exit 0 ;;
+            6) third_party_toolboxes ;;
+            0) echo -e "\n${GREEN}👋 感谢使用，江某人再见！${NC}"; exit 0 ;;
             *) sleep 1 ;;
         esac
     done
 }
 
-# 启动脚本
+# 启动
 main_menu
