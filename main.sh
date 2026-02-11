@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ======================================================
-# 脚本名称：江某人的万能脚本箱 (Dashboard Flat UI)
+# 脚本名称：江某人的万能脚本箱 (v5.0 Comfort Edition)
 # 核心作者：Gemini (for 江某人)
 # 博客地址：op.style
 # ======================================================
@@ -36,9 +36,9 @@ get_system_info() {
         MEM_INFO="未知"
     fi
 
-    IPV4=$(curl -s4 --connect-timeout 3 ifconfig.me || echo "N/A")
-    IPV6=$(curl -s6 --connect-timeout 3 ifconfig.me || echo "N/A")
-    IP_JSON=$(curl -s --connect-timeout 3 http://ip-api.com/json/)
+    IPV4=$(curl -s4 --connect-timeout 2 ifconfig.me || echo "N/A")
+    IPV6=$(curl -s6 --connect-timeout 2 ifconfig.me || echo "N/A")
+    IP_JSON=$(curl -s --connect-timeout 2 http://ip-api.com/json/)
     if [[ $IP_JSON == *"success"* ]]; then
         LOCATION=$(echo $IP_JSON | sed 's/.*"country":"\([^"]*\)".*/\1/')
         ISP=$(echo $IP_JSON | sed 's/.*"isp":"\([^"]*\)".*/\1/')
@@ -114,7 +114,7 @@ swap_manager() {
 # --- 5. UI 绘制 ---
 show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v4.0 ${NC}"
+    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v5.0 ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "   💻 ${BOLD}系统:${NC} $OS_INFO   🧠 ${BOLD}内存:${NC} $MEM_INFO"
     echo -e "   🌍 ${BOLD}位置:${NC} $LOCATION ($ISP)"
@@ -122,34 +122,44 @@ show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
-# --- 6. 主平铺页面 ---
+# --- 6. 主平铺页面 (双列舒适布局) ---
 main_menu() {
     while true; do
         get_system_info; clear; show_header
         
+        # 1. 基础
         echo -e "${BOLD}${YELLOW} [1] 基础环境 ${NC}"
         echo -e " 1. 安装必备基础命令 (curl/wget/git/gzip)"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
         
+        # 2. 体检
         echo -e "${BOLD}${YELLOW} [2] 新机体检项目 ${NC}"
-        echo -e " 2. IP质量检测      3. 网络质量检测      4. 硬件质量检测"
-        echo -e " 5. 三网回程路由    6. NodeQuality检测   7. 融合怪测评(GO)"
-        echo -e " 8. 流媒体解锁检测  9. 流媒体深度检测"
+        echo -e " 2. IP 质量检测           3. 网络质量检测"
+        echo -e " 4. 硬件质量检测          5. 三网回程路由"
+        echo -e " 6. NodeQuality 检测      7. 融合怪测评 (GO)"
+        echo -e " 8. 流媒体解锁检测        9. 流媒体深度检测"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
 
+        # 3. 科学
         echo -e "${BOLD}${YELLOW} [3] 科学上网工具 ${NC}"
-        echo -e " 10. 原版 3x-ui     11. Alpine版3x-ui    12. Sing-box-yg精装"
-        echo -e " 13. yoyo sing-box  14. 欢妹 Alpine UI"
+        echo -e " 10. 原版 3x-ui           11. Alpine版 3x-ui"
+        echo -e " 12. Sing-box-yg 精装     13. yoyo sing-box 一键"
+        echo -e " 14. 欢妹 Alpine UI"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
 
+        # 4. 面板
         echo -e "${BOLD}${YELLOW} [4] 可视化管理面板 ${NC}"
-        echo -e " 15. 1Panel 官方版  16. 宝塔面板         17. aaPanel(国际版)"
-        echo -e " 18. CasaOS 极简"
+        echo -e " 15. 1Panel 官方版        16. 宝塔面板"
+        echo -e " 17. aaPanel (国际版)     18. CasaOS 极简"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
 
-        echo -e "${BOLD}${YELLOW} [5] 实用运维 & 特色脚本 ${NC}"
-        echo -e " 19. DNS 深度管理   20. BBR & TPS 调优   21. Swap 虚拟内存"
-        echo -e " 22. 修改 SSH 端口  23. 哪吒 Agent 卸载  24. ${RED}${BOLD}BBR v3 Ultimate${NC}"
+        # 5. 运维
+        echo -e "${BOLD}${YELLOW} [5] 运维 & 网络 & 综合 ${NC}"
+        echo -e " 19. DNS 深度管理         20. BBR & TPS 调优"
+        echo -e " 21. Swap 虚拟内存        22. 修改 SSH 端口"
+        echo -e " 23. 哪吒 Agent 卸载      24. ${RED}BBR v3 Ultimate${NC}"
+        echo -e " 25. Realm 转发管理       26. AkileDNS 解锁"
+        echo -e " 27. 科技Lion工具箱"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
 
         echo -e "   ${GREEN}0.${NC} ❌ 退出脚本"
@@ -189,8 +199,14 @@ main_menu() {
             24) 
                 install_deps "curl"
                 run_script "BBR v3 Ultimate" "Eric86777/vps-tcp-tune" "bash <(curl -fsSL \"https://raw.githubusercontent.com/Eric86777/vps-tcp-tune/main/install-alias.sh?\$(date +%s)\") && bash /root/.vps-tcp-tune/tcp.sh" "false" ;;
+            25) run_script "Realm 转发管理" "hiapb/hia-realm" "bash <(curl -fsSL https://raw.githubusercontent.com/hiapb/hia-realm/main/install.sh)" "false" ;;
+            26) 
+                install_deps "wget"
+                echo -e "${YELLOW}提示：运行后请配合 ${BLUE}https://dns.akile.ai/${YELLOW} 使用${NC}"
+                run_script "AkileDNS 官方脚本" "akile-network/aktools" "wget -qO- https://raw.githubusercontent.com/akile-network/aktools/refs/heads/main/akdns.sh | bash" "false" ;;
+            27) run_script "科技Lion工具箱" "kejilion.pro" "curl -sS -O https://kejilion.pro/kejilion.sh && chmod +x kejilion.sh && ./kejilion.sh" "false" ;;
             0) 
-               echo -e "\n${YELLOW}⚠️  重要：${WHITE}执行过 BBR v3 安装的用户，请退出后运行 ${CYAN}source ~/.bashrc${NC}"
+               echo -e "\n${YELLOW}⚠️  提示：${WHITE}如安装了BBR v3，请执行 ${CYAN}source ~/.bashrc${NC}"
                echo -e "${GREEN}👋 感谢使用，江某人再见！${NC}"; exit 0 ;;
             *) sleep 1 ;;
         esac
