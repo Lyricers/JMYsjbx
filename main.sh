@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ======================================================
-# 脚本名称：江某人的万能脚本箱 (v5.1 Comfort Edition - Full URL)
+# 脚本名称：江某人的万能脚本箱 (v5.2 Bugfix Edition)
 # 核心作者：Gemini (for 江某人)
 # 博客地址：op.style
 # ======================================================
@@ -85,36 +85,48 @@ dns_manager() {
             6) sed -i '/^nameserver/!d' /etc/resolv.conf; sed -i 's/^[ \t]*//;s/[ \t]*$//' /etc/resolv.conf ;;
             7) > /etc/resolv.conf ;;
             0) break ;;
+            *) echo -e "\n${RED}❌ 无效输入！${NC}"; sleep 1.5 ;;
         esac
     done
 }
 
 bbr_tuning() {
-    clear; echo -e "${CYAN}=== BBR & TPS 管理 ===${NC}\n1.开启BBR 2.关闭BBR 3.TPS调优"; read -p "选择: " b
-    if [ "$b" -eq 1 ]; then
-        echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
-        echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
-        sysctl -p; echo -e "${GREEN}BBR开启！参考：https://omnitt.com/${NC}"; sleep 3
-    elif [ "$b" -eq 2 ]; then
-        sed -i '/bbr/d;/fq/d' /etc/sysctl.conf; sysctl -p
-    fi
+    clear; echo -e "${CYAN}=== BBR & TPS 管理 ===${NC}\n1.开启BBR 2.关闭BBR 3.TPS调优 0.返回"; read -p "选择: " b
+    case $b in
+        1)
+            echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
+            echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
+            sysctl -p; echo -e "${GREEN}BBR开启！参考：https://omnitt.com/${NC}"; sleep 3 ;;
+        2)
+            sed -i '/bbr/d;/fq/d' /etc/sysctl.conf; sysctl -p ;;
+        3)
+            echo "net.ipv4.tcp_fastopen=3" >> /etc/sysctl.conf
+            sysctl -p; echo -e "${GREEN}TPS调优完成！${NC}"; sleep 2 ;;
+        0) return ;;
+        *) echo -e "\n${RED}❌ 无效输入！${NC}"; sleep 1.5 ;;
+    esac
 }
 
 swap_manager() {
-    clear; echo -e "1.添加 2.删除"; read -p "选择: " s
-    if [ "$s" -eq 1 ]; then
-        read -p "大小(MB): " sz; dd if=/dev/zero of=/swapfile bs=1M count=$sz
-        chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
-        echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
-    elif [ "$s" -eq 2 ]; then
-        swapoff /swapfile; rm -f /swapfile; sed -i '/\/swapfile/d' /etc/fstab
-    fi
+    clear; echo -e "${CYAN}=== Swap 管理 ===${NC}\n1.添加 2.删除 0.返回"; read -p "选择: " s
+    case $s in
+        1)
+            read -p "大小(MB): " sz; dd if=/dev/zero of=/swapfile bs=1M count=$sz
+            chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+            echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
+            echo -e "${GREEN}Swap 添加成功！${NC}"; sleep 2 ;;
+        2)
+            swapoff /swapfile; rm -f /swapfile; sed -i '/\/swapfile/d' /etc/fstab
+            echo -e "${YELLOW}Swap 已删除。${NC}"; sleep 2 ;;
+        0) return ;;
+        *) echo -e "\n${RED}❌ 无效输入！${NC}"; sleep 1.5 ;;
+    esac
 }
 
 # --- 5. UI 绘制 ---
 show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v5.1 ${NC}"
+    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v5.2 ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "   💻 ${BOLD}系统:${NC} $OS_INFO   🧠 ${BOLD}内存:${NC} $MEM_INFO"
     echo -e "   🌍 ${BOLD}位置:${NC} $LOCATION ($ISP)"
@@ -122,7 +134,7 @@ show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
-# --- 6. 主平铺页面 (双列舒适布局) ---
+# --- 6. 主平铺页面 ---
 main_menu() {
     while true; do
         get_system_info; clear; show_header
@@ -171,7 +183,6 @@ main_menu() {
         case $choice in
             1) install_deps "bash curl wget git sudo lsof ca-certificates gzip" ;;
             
-            # 体检项目 (已补全完整 Github URL)
             2) run_script "IP质量" "https://github.com/xykt/IPQuality" "bash <(curl -Ls https://IP.Check.Place) -y" "false" ;;
             3) run_script "网络质量" "https://github.com/xykt/NetQuality" "bash <(curl -Ls https://Net.Check.Place) -y" "false" ;;
             4) run_script "硬件质量" "https://github.com/xykt/HardwareQuality" "bash <(curl -Ls https://Hardware.Check.Place) -y" "false" ;;
@@ -181,24 +192,21 @@ main_menu() {
             8) run_script "流媒体解锁" "https://github.com/HsukqiLee/MediaUnlockTest" "bash <(curl -Ls unlock.icmp.ing/scripts/test.sh)" "false" ;;
             9) run_script "流媒体解锁(深)" "https://github.com/1-stream/RegionRestrictionCheck" "bash <(curl -L -s https://raw.githubusercontent.com/1-stream/RegionRestrictionCheck/main/check.sh)" "false" ;;
             
-            # 科学上网 (已补全完整 Github URL)
             10) run_script "原版 3x-ui" "https://github.com/MHSanaei/3x-ui" "bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.6.2" "false" ;;
             11) install_deps "curl bash gzip"; run_script "Alpine-3x-ui" "https://github.com/56idc/3x-ui-alpine" "bash <(curl -Ls https://raw.githubusercontent.com/56idc/3x-ui-alpine/master/install_alpine.sh)" "true" ;;
             12) run_script "Sing-box-yg" "https://github.com/yonggekkk/sing-box-yg" "bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sb.sh)" "false" ;;
             13) run_script "yoyo-singbox" "https://github.com/caigouzi121380/singbox-deploy" "bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/caigouzi121380/singbox-deploy/main/install-singbox-yyds.sh)\"" "false" ;;
             14) install_deps "curl bash gzip openssl"; run_script "欢妹Alpine" "https://github.com/StarVM-OpenSource/3x-ui-Apline" "bash <(curl -Ls https://raw.githubusercontent.com/StarVM-OpenSource/3x-ui-Apline/refs/heads/main/install.sh)" "true" ;;
             
-            # 可视化面板 (已补全完整 官网/Github URL)
             15) run_script "1Panel" "https://github.com/1Panel-dev/1Panel" "curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh" "false" ;;
             16) run_script "宝塔面板" "https://www.bt.cn/" "curl -sSO https://download.bt.cn/install/install_panel.sh && bash install_panel.sh ed8484bec" "false" ;;
             17) run_script "aaPanel" "https://www.aapanel.com/" "wget -O install.sh http://www.aapanel.com/script/install_6.0_en.sh && bash install.sh" "false" ;;
             18) run_script "CasaOS" "https://github.com/IceWhaleTech/CasaOS" "curl -fsSL https://get.casaos.io | bash" "false" ;;
             
-            # 工具及第三方聚合 (已补全完整 Github URL)
             19) dns_manager ;;
             20) bbr_tuning ;;
             21) swap_manager ;;
-            22) read -p "新端口: " p; sed -i "s/Port .*/Port $p/" /etc/ssh/sshd_config; systemctl restart sshd; sleep 1 ;;
+            22) read -p "新端口: " p; sed -i "s/Port .*/Port $p/" /etc/ssh/sshd_config; systemctl restart sshd; echo -e "${GREEN}修改成功！${NC}"; sleep 1.5 ;;
             23) run_script "哪吒卸载" "https://github.com/everett7623/Nezha-cleaner" "bash <(curl -s https://raw.githubusercontent.com/everett7623/Nezha-cleaner/main/nezha-agent-cleaner.sh)" "false" ;;
             24) 
                 install_deps "curl"
@@ -213,7 +221,12 @@ main_menu() {
             0) 
                echo -e "\n${YELLOW}⚠️  提示：${WHITE}如安装了BBR v3，请执行 ${CYAN}source ~/.bashrc${NC}"
                echo -e "${GREEN}👋 感谢使用，江某人再见！${NC}"; exit 0 ;;
-            *) sleep 1 ;;
+            
+            # --- 核心修复：添加错误输入提示 ---
+            *) 
+               echo -e "\n${RED}❌ 无效输入 [ $choice ]！请选择列表中存在的数字。${NC}"
+               sleep 1.5 
+               ;;
         esac
     done
 }
