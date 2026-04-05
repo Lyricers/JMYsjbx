@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ======================================================
-# 脚本名称：江某人的万能脚本箱 (v5.2 Bugfix Edition)
+# 脚本名称：江某人的万能脚本箱 (v6.0 Perfect UI & UX)
 # 核心作者：Gemini (for 江某人)
 # 博客地址：op.style
 # ======================================================
@@ -58,16 +58,34 @@ install_deps() {
 
 run_script() {
     local name=$1; local github=$2; local command=$3; local is_alpine=$4
+    
+    # 系统锁检测
     if [ "$is_alpine" = "true" ] && [ "$OS_RAW" != "alpine" ]; then
-        echo -e "${RED}❌ 错误：[ $name ] 仅支持 Alpine 系统！${NC}"; read -n 1 -s -r -p "按任意键返回..."; return
+        echo -e "\n${RED}❌ 错误：[ $name ] 仅支持 Alpine 系统！${NC}"
+        read -n 1 -s -r -p "按任意键返回..."
+        return
     fi
+    
     clear
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "🚀 ${BOLD}正在启动：${WHITE}$name${NC}"
+    echo -e "🚀 ${BOLD}即将启动：${WHITE}$name${NC}"
     echo -e "🔗 ${BOLD}项目地址：${BLUE}$github${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    sleep 1; eval "$command"
-    echo -e "\n${GREEN}✅ 执行完毕。${NC}"; read -n 1 -s -r -p "按任意键返回主菜单..."
+    
+    # 核心体验升级：防误触二次确认
+    echo -e "为防止误触，请确认启动脚本正确无误后输入${GREEN}任意键${NC}开始执行脚本，否则请输入“${RED}N${NC}”返回脚本列表。"
+    read -n 1 -s -r confirm
+    if [[ "${confirm}" == "N" || "${confirm}" == "n" ]]; then
+        echo -e "\n${YELLOW}已取消执行，正在返回...${NC}"
+        sleep 1
+        return
+    fi
+    
+    echo -e "\n${GREEN}▶ 开始执行...${NC}\n"
+    sleep 1
+    eval "$command"
+    echo -e "\n${GREEN}✅ 执行完毕。${NC}"
+    read -n 1 -s -r -p "按任意键返回主菜单..."
 }
 
 # --- 4. 深度运维逻辑 ---
@@ -85,7 +103,7 @@ dns_manager() {
             6) sed -i '/^nameserver/!d' /etc/resolv.conf; sed -i 's/^[ \t]*//;s/[ \t]*$//' /etc/resolv.conf ;;
             7) > /etc/resolv.conf ;;
             0) break ;;
-            *) echo -e "\n${RED}❌ 无效输入！${NC}"; sleep 1.5 ;;
+            *) echo -e "\n${RED}❌ 无效输入！${NC}"; read -n 1 -s -r -p "按任意键继续..." ;;
         esac
     done
 }
@@ -96,14 +114,18 @@ bbr_tuning() {
         1)
             echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
             echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
-            sysctl -p; echo -e "${GREEN}BBR开启！参考：https://omnitt.com/${NC}"; sleep 3 ;;
+            sysctl -p; echo -e "${GREEN}BBR开启！参考：https://omnitt.com/${NC}"
+            read -n 1 -s -r -p "按任意键继续..." ;;
         2)
-            sed -i '/bbr/d;/fq/d' /etc/sysctl.conf; sysctl -p ;;
+            sed -i '/bbr/d;/fq/d' /etc/sysctl.conf; sysctl -p 
+            echo -e "${YELLOW}BBR已关闭。${NC}"
+            read -n 1 -s -r -p "按任意键继续..." ;;
         3)
             echo "net.ipv4.tcp_fastopen=3" >> /etc/sysctl.conf
-            sysctl -p; echo -e "${GREEN}TPS调优完成！${NC}"; sleep 2 ;;
+            sysctl -p; echo -e "${GREEN}TPS调优完成！${NC}"
+            read -n 1 -s -r -p "按任意键继续..." ;;
         0) return ;;
-        *) echo -e "\n${RED}❌ 无效输入！${NC}"; sleep 1.5 ;;
+        *) echo -e "\n${RED}❌ 无效输入！${NC}"; read -n 1 -s -r -p "按任意键继续..." ;;
     esac
 }
 
@@ -114,19 +136,21 @@ swap_manager() {
             read -p "大小(MB): " sz; dd if=/dev/zero of=/swapfile bs=1M count=$sz
             chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
             echo "/swapfile swap swap defaults 0 0" >> /etc/fstab
-            echo -e "${GREEN}Swap 添加成功！${NC}"; sleep 2 ;;
+            echo -e "${GREEN}Swap 添加成功！${NC}"
+            read -n 1 -s -r -p "按任意键继续..." ;;
         2)
             swapoff /swapfile; rm -f /swapfile; sed -i '/\/swapfile/d' /etc/fstab
-            echo -e "${YELLOW}Swap 已删除。${NC}"; sleep 2 ;;
+            echo -e "${YELLOW}Swap 已删除。${NC}"
+            read -n 1 -s -r -p "按任意键继续..." ;;
         0) return ;;
-        *) echo -e "\n${RED}❌ 无效输入！${NC}"; sleep 1.5 ;;
+        *) echo -e "\n${RED}❌ 无效输入！${NC}"; read -n 1 -s -r -p "按任意键继续..." ;;
     esac
 }
 
 # --- 5. UI 绘制 ---
 show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v5.2 ${NC}"
+    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v6.0 ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "   💻 ${BOLD}系统:${NC} $OS_INFO   🧠 ${BOLD}内存:${NC} $MEM_INFO"
     echo -e "   🌍 ${BOLD}位置:${NC} $LOCATION ($ISP)"
@@ -183,22 +207,22 @@ main_menu() {
         case $choice in
             1) install_deps "bash curl wget git sudo lsof ca-certificates gzip" ;;
             
-            2) run_script "IP质量" "https://github.com/xykt/IPQuality" "bash <(curl -Ls https://IP.Check.Place) -y" "false" ;;
-            3) run_script "网络质量" "https://github.com/xykt/NetQuality" "bash <(curl -Ls https://Net.Check.Place) -y" "false" ;;
-            4) run_script "硬件质量" "https://github.com/xykt/HardwareQuality" "bash <(curl -Ls https://Hardware.Check.Place) -y" "false" ;;
-            5) run_script "三网回程" "https://github.com/zhanghanyun/backtrace" "curl https://raw.githubusercontent.com/zhanghanyun/backtrace/main/install.sh -sSf | sh" "false" ;;
+            2) run_script "IP质量检测" "https://github.com/xykt/IPQuality" "bash <(curl -Ls https://IP.Check.Place) -y" "false" ;;
+            3) run_script "网络质量检测" "https://github.com/xykt/NetQuality" "bash <(curl -Ls https://Net.Check.Place) -y" "false" ;;
+            4) run_script "硬件质量检测" "https://github.com/xykt/HardwareQuality" "bash <(curl -Ls https://Hardware.Check.Place) -y" "false" ;;
+            5) run_script "三网回程路由" "https://github.com/zhanghanyun/backtrace" "curl https://raw.githubusercontent.com/zhanghanyun/backtrace/main/install.sh -sSf | sh" "false" ;;
             6) run_script "NodeQuality" "https://github.com/LloydAsp/NodeQuality" "bash <(curl -sL https://run.NodeQuality.com)" "false" ;;
             7) run_script "融合怪测评" "https://github.com/oneclickvirt/ecs" "export noninteractive=true && curl -L https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/ecs/master/goecs.sh -o goecs.sh && chmod +x goecs.sh && ./goecs.sh install && goecs" "false" ;;
-            8) run_script "流媒体解锁" "https://github.com/HsukqiLee/MediaUnlockTest" "bash <(curl -Ls unlock.icmp.ing/scripts/test.sh)" "false" ;;
+            8) run_script "流媒体解锁检测" "https://github.com/HsukqiLee/MediaUnlockTest" "bash <(curl -Ls unlock.icmp.ing/scripts/test.sh)" "false" ;;
             9) run_script "流媒体解锁(深)" "https://github.com/1-stream/RegionRestrictionCheck" "bash <(curl -L -s https://raw.githubusercontent.com/1-stream/RegionRestrictionCheck/main/check.sh)" "false" ;;
             
             10) run_script "原版 3x-ui" "https://github.com/MHSanaei/3x-ui" "bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) v2.6.2" "false" ;;
-            11) install_deps "curl bash gzip"; run_script "Alpine-3x-ui" "https://github.com/56idc/3x-ui-alpine" "bash <(curl -Ls https://raw.githubusercontent.com/56idc/3x-ui-alpine/master/install_alpine.sh)" "true" ;;
-            12) run_script "Sing-box-yg" "https://github.com/yonggekkk/sing-box-yg" "bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sb.sh)" "false" ;;
-            13) run_script "yoyo-singbox" "https://github.com/caigouzi121380/singbox-deploy" "bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/caigouzi121380/singbox-deploy/main/install-singbox-yyds.sh)\"" "false" ;;
-            14) install_deps "curl bash gzip openssl"; run_script "欢妹Alpine" "https://github.com/StarVM-OpenSource/3x-ui-Apline" "bash <(curl -Ls https://raw.githubusercontent.com/StarVM-OpenSource/3x-ui-Apline/refs/heads/main/install.sh)" "true" ;;
+            11) install_deps "curl bash gzip"; run_script "Alpine版 3x-ui" "https://github.com/56idc/3x-ui-alpine" "bash <(curl -Ls https://raw.githubusercontent.com/56idc/3x-ui-alpine/master/install_alpine.sh)" "true" ;;
+            12) run_script "Sing-box-yg 精装桶" "https://github.com/yonggekkk/sing-box-yg" "bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sb.sh)" "false" ;;
+            13) run_script "yoyo sing-box 一键" "https://github.com/caigouzi121380/singbox-deploy" "bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/caigouzi121380/singbox-deploy/main/install-singbox-yyds.sh)\"" "false" ;;
+            14) install_deps "curl bash gzip openssl"; run_script "欢妹 Alpine UI" "https://github.com/StarVM-OpenSource/3x-ui-Apline" "bash <(curl -Ls https://raw.githubusercontent.com/StarVM-OpenSource/3x-ui-Apline/refs/heads/main/install.sh)" "true" ;;
             
-            15) run_script "1Panel" "https://github.com/1Panel-dev/1Panel" "curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh" "false" ;;
+            15) run_script "1Panel 官方版" "https://github.com/1Panel-dev/1Panel" "curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && bash quick_start.sh" "false" ;;
             16) run_script "宝塔面板" "https://www.bt.cn/" "curl -sSO https://download.bt.cn/install/install_panel.sh && bash install_panel.sh ed8484bec" "false" ;;
             17) run_script "aaPanel" "https://www.aapanel.com/" "wget -O install.sh http://www.aapanel.com/script/install_6.0_en.sh && bash install.sh" "false" ;;
             18) run_script "CasaOS" "https://github.com/IceWhaleTech/CasaOS" "curl -fsSL https://get.casaos.io | bash" "false" ;;
@@ -206,8 +230,8 @@ main_menu() {
             19) dns_manager ;;
             20) bbr_tuning ;;
             21) swap_manager ;;
-            22) read -p "新端口: " p; sed -i "s/Port .*/Port $p/" /etc/ssh/sshd_config; systemctl restart sshd; echo -e "${GREEN}修改成功！${NC}"; sleep 1.5 ;;
-            23) run_script "哪吒卸载" "https://github.com/everett7623/Nezha-cleaner" "bash <(curl -s https://raw.githubusercontent.com/everett7623/Nezha-cleaner/main/nezha-agent-cleaner.sh)" "false" ;;
+            22) read -p "新端口: " p; sed -i "s/Port .*/Port $p/" /etc/ssh/sshd_config; systemctl restart sshd; echo -e "${GREEN}修改成功！${NC}"; read -n 1 -s -r -p "按任意键继续..." ;;
+            23) run_script "哪吒 Agent 卸载" "https://github.com/everett7623/Nezha-cleaner" "bash <(curl -s https://raw.githubusercontent.com/everett7623/Nezha-cleaner/main/nezha-agent-cleaner.sh)" "false" ;;
             24) 
                 install_deps "curl"
                 run_script "BBR v3 Ultimate" "https://github.com/Eric86777/vps-tcp-tune" "bash <(curl -fsSL \"https://raw.githubusercontent.com/Eric86777/vps-tcp-tune/main/install-alias.sh?\$(date +%s)\") && bash /root/.vps-tcp-tune/tcp.sh" "false" ;;
@@ -222,10 +246,10 @@ main_menu() {
                echo -e "\n${YELLOW}⚠️  提示：${WHITE}如安装了BBR v3，请执行 ${CYAN}source ~/.bashrc${NC}"
                echo -e "${GREEN}👋 感谢使用，江某人再见！${NC}"; exit 0 ;;
             
-            # --- 核心修复：添加错误输入提示 ---
+            # --- 彻底修复防呆设计：任意按键响应 ---
             *) 
                echo -e "\n${RED}❌ 无效输入 [ $choice ]！请选择列表中存在的数字。${NC}"
-               sleep 1.5 
+               read -n 1 -s -r -p "按任意键继续..."
                ;;
         esac
     done
