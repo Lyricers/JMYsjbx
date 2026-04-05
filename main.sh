@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ======================================================
-# 脚本名称：江某人的万能脚本箱 (v6.0 Perfect UI & UX)
+# 脚本名称：江某人的万能脚本箱 (v6.1 Ultimate UX)
 # 核心作者：Gemini (for 江某人)
 # 博客地址：op.style
 # ======================================================
@@ -59,7 +59,6 @@ install_deps() {
 run_script() {
     local name=$1; local github=$2; local command=$3; local is_alpine=$4
     
-    # 系统锁检测
     if [ "$is_alpine" = "true" ] && [ "$OS_RAW" != "alpine" ]; then
         echo -e "\n${RED}❌ 错误：[ $name ] 仅支持 Alpine 系统！${NC}"
         read -n 1 -s -r -p "按任意键返回..."
@@ -72,7 +71,6 @@ run_script() {
     echo -e "🔗 ${BOLD}项目地址：${BLUE}$github${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     
-    # 核心体验升级：防误触二次确认
     echo -e "为防止误触，请确认启动脚本正确无误后输入${GREEN}任意键${NC}开始执行脚本，否则请输入“${RED}N${NC}”返回脚本列表。"
     read -n 1 -s -r confirm
     if [[ "${confirm}" == "N" || "${confirm}" == "n" ]]; then
@@ -150,7 +148,7 @@ swap_manager() {
 # --- 5. UI 绘制 ---
 show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v6.0 ${NC}"
+    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v6.1 ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "   💻 ${BOLD}系统:${NC} $OS_INFO   🧠 ${BOLD}内存:${NC} $MEM_INFO"
     echo -e "   🌍 ${BOLD}位置:${NC} $LOCATION ($ISP)"
@@ -163,12 +161,10 @@ main_menu() {
     while true; do
         get_system_info; clear; show_header
         
-        # 1. 基础
         echo -e "${BOLD}${YELLOW} [1] 基础环境 ${NC}"
         echo -e " 1. 安装必备基础命令 (curl/wget/git/gzip)"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
         
-        # 2. 体检
         echo -e "${BOLD}${YELLOW} [2] 新机体检项目 ${NC}"
         echo -e " 2. IP 质量检测           3. 网络质量检测"
         echo -e " 4. 硬件质量检测          5. 三网回程路由"
@@ -176,20 +172,17 @@ main_menu() {
         echo -e " 8. 流媒体解锁检测        9. 流媒体深度检测"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
 
-        # 3. 科学
         echo -e "${BOLD}${YELLOW} [3] 科学上网工具 ${NC}"
         echo -e " 10. 原版 3x-ui           11. Alpine版 3x-ui"
         echo -e " 12. Sing-box-yg 精装     13. yoyo sing-box 一键"
         echo -e " 14. 欢妹 Alpine UI"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
 
-        # 4. 面板
         echo -e "${BOLD}${YELLOW} [4] 可视化管理面板 ${NC}"
         echo -e " 15. 1Panel 官方版        16. 宝塔面板"
         echo -e " 17. aaPanel (国际版)     18. CasaOS 极简"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
 
-        # 5. 运维
         echo -e "${BOLD}${YELLOW} [5] 运维 & 网络 & 综合 ${NC}"
         echo -e " 19. DNS 深度管理         20. BBR & TPS 调优"
         echo -e " 21. Swap 虚拟内存        22. 修改 SSH 端口"
@@ -232,9 +225,42 @@ main_menu() {
             21) swap_manager ;;
             22) read -p "新端口: " p; sed -i "s/Port .*/Port $p/" /etc/ssh/sshd_config; systemctl restart sshd; echo -e "${GREEN}修改成功！${NC}"; read -n 1 -s -r -p "按任意键继续..." ;;
             23) run_script "哪吒 Agent 卸载" "https://github.com/everett7623/Nezha-cleaner" "bash <(curl -s https://raw.githubusercontent.com/everett7623/Nezha-cleaner/main/nezha-agent-cleaner.sh)" "false" ;;
-            24) 
+            
+            24) # 专门为 BBR v3 定制的交互逻辑
                 install_deps "curl"
-                run_script "BBR v3 Ultimate" "https://github.com/Eric86777/vps-tcp-tune" "bash <(curl -fsSL \"https://raw.githubusercontent.com/Eric86777/vps-tcp-tune/main/install-alias.sh?\$(date +%s)\") && bash /root/.vps-tcp-tune/tcp.sh" "false" ;;
+                clear
+                echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+                echo -e "🚀 ${BOLD}即将启动：${WHITE}BBR v3 Ultimate${NC}"
+                echo -e "🔗 ${BOLD}项目地址：${BLUE}https://github.com/Eric86777/vps-tcp-tune${NC}"
+                echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+                echo -e "为防止误触，请确认启动脚本正确无误后输入${GREEN}任意键${NC}开始执行脚本，否则请输入“${RED}N${NC}”返回脚本列表。"
+                read -n 1 -s -r confirm
+                if [[ "${confirm}" == "N" || "${confirm}" == "n" ]]; then
+                    echo -e "\n${YELLOW}已取消执行，正在返回...${NC}"
+                    sleep 1
+                else
+                    echo -e "\n${GREEN}▶ 开始安装并配置别名...${NC}\n"
+                    bash <(curl -fsSL "https://raw.githubusercontent.com/Eric86777/vps-tcp-tune/main/install-alias.sh?$(date +%s)")
+                    
+                    echo -e "\n${GREEN}▶ 尝试自动启动 BBR 面板...${NC}\n"
+                    sleep 1
+                    if command -v bbr >/dev/null 2>&1; then
+                        bbr
+                    else
+                        bash /root/.vps-tcp-tune/tcp.sh
+                    fi
+                    
+                    # 退出后弹出强提醒
+                    echo -e "\n${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+                    echo -e "💡 ${YELLOW}${BOLD}温馨提示：${NC}"
+                    echo -e "下次需要管理 BBR 时，${GREEN}无需再次打开本脚本箱${NC}。"
+                    echo -e "直接在服务器命令行输入 ${BOLD}${CYAN}bbr${NC} 即可快速唤出该面板！"
+                    echo -e "${WHITE}(若提示命令不存在，请手动执行一次 source ~/.bashrc)${NC}"
+                    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+                    read -n 1 -s -r -p "按任意键返回主菜单..."
+                fi
+                ;;
+                
             25) run_script "Realm 转发管理" "https://github.com/hiapb/hia-realm" "bash <(curl -fsSL https://raw.githubusercontent.com/hiapb/hia-realm/main/install.sh)" "false" ;;
             26) 
                 install_deps "wget"
@@ -243,10 +269,7 @@ main_menu() {
             27) run_script "科技Lion工具箱" "https://kejilion.pro" "curl -sS -O https://kejilion.pro/kejilion.sh && chmod +x kejilion.sh && ./kejilion.sh" "false" ;;
             
             0) 
-               echo -e "\n${YELLOW}⚠️  提示：${WHITE}如安装了BBR v3，请执行 ${CYAN}source ~/.bashrc${NC}"
-               echo -e "${GREEN}👋 感谢使用，江某人再见！${NC}"; exit 0 ;;
-            
-            # --- 彻底修复防呆设计：任意按键响应 ---
+               echo -e "\n${GREEN}👋 感谢使用，江某人再见！${NC}"; exit 0 ;;
             *) 
                echo -e "\n${RED}❌ 无效输入 [ $choice ]！请选择列表中存在的数字。${NC}"
                read -n 1 -s -r -p "按任意键继续..."
