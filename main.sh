@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # ======================================================
-# 脚本名称：江某人的万能脚本箱 (v6.1 Ultimate UX)
-# 核心作者：Gemini (for 江某人)
+# 脚本名称：江某人的万能脚本箱 (v6.2 improve DNS UI)
+# 核心作者：Gemini
 # 博客地址：op.style
 # ======================================================
 
@@ -87,21 +87,101 @@ run_script() {
 }
 
 # --- 4. 深度运维逻辑 ---
+
+# 🌟 重制版 DNS 管理器 🌟
 dns_manager() {
     while true; do
-        clear; echo -e "${CYAN}=== DNS 管理器 ===${NC}"; grep "nameserver" /etc/resolv.conf | nl -w2 -s'. '
-        echo -e "----------------------------------\n1.添加 2.批量 3.修改 4.移动 5.公共 6.纠错 7.清空 0.返回"
-        read -p "操作: " d
+        clear
+        echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${BOLD}${PURPLE}          🌐 DNS 深度管理器 ${YELLOW}| ${GREEN}DNS Tuning ${NC}"
+        echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${BOLD}   📄 当前 /etc/resolv.conf 配置：${NC}"
+        echo -e "${CYAN}   --------------------------------------------------------${NC}"
+        if grep -q "nameserver" /etc/resolv.conf; then
+            grep "nameserver" /etc/resolv.conf | nl -w2 -s'. ' | while read line; do
+                echo -e "     ${YELLOW}${line}${NC}"
+            done
+        else
+            echo -e "     ${RED}当前没有配置任何 DNS 服务器！${NC}"
+        fi
+        echo -e "${CYAN}   --------------------------------------------------------${NC}"
+        echo -e "   ${GREEN}1.${NC} ➕ 添加单条 DNS 记录"
+        echo -e "   ${GREEN}2.${NC} 📝 批量添加 DNS (空格或逗号分隔)"
+        echo -e "   ${GREEN}3.${NC} ✏️  修改指定行的 DNS IP"
+        echo -e "   ${GREEN}4.${NC} ↕️  移动指定行的位置 (上移/下移)"
+        echo -e "   ${GREEN}5.${NC} 🌍 一键添加主流公共 DNS (国内外精选)"
+        echo -e "   ${GREEN}6.${NC} 🧹 格式纠错 (清理无效空格与乱码)"
+        echo -e "   ${GREEN}7.${NC} 🗑️  一键清空所有 DNS 配置"
+        echo -e "   ${GREEN}0.${NC} 🔙 返回上一级菜单"
+        echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        read -p "   请选择操作 [0-7]: " d
+        
         case $d in
-            1) read -p "IP: " ip; echo "nameserver $ip" >> /etc/resolv.conf ;;
-            2) read -p "IPs: " ips; for i in ${ips//,/ }; do echo "nameserver $i" >> /etc/resolv.conf; done ;;
-            3) read -p "行: " l; read -p "新IP: " ni; sed -i "${l}s/nameserver .*/nameserver $ni/" /etc/resolv.conf ;;
-            4) read -p "行: " l; read -p "方向(1.上 2.下): " dr; [[ $dr -eq 1 ]] && { sed -i "${l}h;${l}d;$(($l-1))G" /etc/resolv.conf; } || { sed -i "${l}h;${l}d;$(($l+1))G" /etc/resolv.conf; } ;;
-            5) echo -e "nameserver 8.8.8.8\nnameserver 1.1.1.1" >> /etc/resolv.conf ;;
-            6) sed -i '/^nameserver/!d' /etc/resolv.conf; sed -i 's/^[ \t]*//;s/[ \t]*$//' /etc/resolv.conf ;;
-            7) > /etc/resolv.conf ;;
+            1) 
+               echo -e "\n"
+               read -p "   请输入 DNS IP: " ip
+               if [[ -n "$ip" ]]; then echo "nameserver $ip" >> /etc/resolv.conf; echo -e "   ${GREEN}✅ 已成功添加 $ip${NC}"; sleep 1; fi 
+               ;;
+            2) 
+               echo -e "\n"
+               read -p "   请输入多个 DNS IP (空格或逗号分隔): " ips
+               for i in ${ips//,/ }; do echo "nameserver $i" >> /etc/resolv.conf; done
+               echo -e "   ${GREEN}✅ 批量添加完成！${NC}"; sleep 1 
+               ;;
+            3) 
+               echo -e "\n"
+               read -p "   请输入要修改的行号: " l
+               read -p "   请输入新的 DNS IP: " ni
+               sed -i "${l}s/nameserver .*/nameserver $ni/" /etc/resolv.conf
+               echo -e "   ${GREEN}✅ 第 $l 行修改完成！${NC}"; sleep 1
+               ;;
+            4) 
+               echo -e "\n"
+               read -p "   请输入要移动的行号: " l
+               read -p "   请输入移动方向 (1.上移 2.下移): " dr
+               if [[ $dr -eq 1 ]]; then
+                   sed -i "${l}h;${l}d;$(($l-1))G" /etc/resolv.conf
+               elif [[ $dr -eq 2 ]]; then
+                   sed -i "${l}h;${l}d;$(($l+1))G" /etc/resolv.conf
+               fi
+               echo -e "   ${GREEN}✅ 移动完成！${NC}"; sleep 1
+               ;;
+            5) 
+               clear
+               echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+               echo -e "   ${BOLD}🌍 请选择要添加的公共 DNS${NC} (IPv4将自动排在IPv6之前)"
+               echo -e "${CYAN}   --------------------------------------------------------${NC}"
+               echo -e "   ${GREEN}1.${NC} 🇨🇳 阿里云 DNS (国内极速推荐)"
+               echo -e "   ${GREEN}2.${NC} 🐧 腾讯云 DNS (国内稳定推荐)"
+               echo -e "   ${GREEN}3.${NC} 🇺🇸 Google DNS (国际标准配置)"
+               echo -e "   ${GREEN}4.${NC} 🛡️ Cloudflare (国际防污染推荐)"
+               echo -e "   ${GREEN}5.${NC} 🌐 Quad9 (国际安全隐私推荐)"
+               echo -e "   ${GREEN}6.${NC} 🚀 综合套餐 (阿里+腾讯+Google+CF)"
+               echo -e "   ${GREEN}0.${NC} 🔙 取消并返回"
+               echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+               read -p "   请选择 [0-6]: " pd
+               case $pd in
+                   1) echo -e "nameserver 223.5.5.5\nnameserver 223.6.6.6\nnameserver 2400:3200::1\nnameserver 2400:3200:baba::1" >> /etc/resolv.conf; echo -e "\n   ${GREEN}✅ 阿里 DNS 添加完成！${NC}"; sleep 1 ;;
+                   2) echo -e "nameserver 119.29.29.29\nnameserver 119.28.28.28\nnameserver 2402:4e00::" >> /etc/resolv.conf; echo -e "\n   ${GREEN}✅ 腾讯 DNS 添加完成！${NC}"; sleep 1 ;;
+                   3) echo -e "nameserver 8.8.8.8\nnameserver 8.8.4.4\nnameserver 2001:4860:4860::8888\nnameserver 2001:4860:4860::8844" >> /etc/resolv.conf; echo -e "\n   ${GREEN}✅ Google DNS 添加完成！${NC}"; sleep 1 ;;
+                   4) echo -e "nameserver 1.1.1.1\nnameserver 1.0.0.1\nnameserver 2606:4700:4700::1111\nnameserver 2606:4700:4700::1001" >> /etc/resolv.conf; echo -e "\n   ${GREEN}✅ Cloudflare DNS 添加完成！${NC}"; sleep 1 ;;
+                   5) echo -e "nameserver 9.9.9.9\nnameserver 149.112.112.112\nnameserver 2620:fe::fe\nnameserver 2620:fe::9" >> /etc/resolv.conf; echo -e "\n   ${GREEN}✅ Quad9 DNS 添加完成！${NC}"; sleep 1 ;;
+                   6) echo -e "nameserver 223.5.5.5\nnameserver 119.29.29.29\nnameserver 8.8.8.8\nnameserver 1.1.1.1\nnameserver 2400:3200::1\nnameserver 2402:4e00::\nnameserver 2001:4860:4860::8888\nnameserver 2606:4700:4700::1111" >> /etc/resolv.conf
+                      echo -e "\n   ${GREEN}✅ 综合 DNS 套餐添加完成！${NC}"; sleep 1.5 ;;
+                   0) ;;
+                   *) echo -e "\n   ${RED}❌ 无效输入！${NC}"; sleep 1.5 ;;
+               esac
+               ;;
+            6) 
+               sed -i '/^nameserver/!d' /etc/resolv.conf; sed -i 's/^[ \t]*//;s/[ \t]*$//' /etc/resolv.conf
+               echo -e "\n   ${GREEN}✅ 格式纠错与清理完成！${NC}"; sleep 1 
+               ;;
+            7) 
+               > /etc/resolv.conf
+               echo -e "\n   ${YELLOW}🧹 所有 DNS 已清空！${NC}"; sleep 1 
+               ;;
             0) break ;;
-            *) echo -e "\n${RED}❌ 无效输入！${NC}"; read -n 1 -s -r -p "按任意键继续..." ;;
+            *) echo -e "\n   ${RED}❌ 无效输入 [ $d ]！请选择列表中存在的数字。${NC}"; read -n 1 -s -r -p "   按任意键继续..." ;;
         esac
     done
 }
@@ -148,7 +228,7 @@ swap_manager() {
 # --- 5. UI 绘制 ---
 show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v6.1 ${NC}"
+    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v6.2 ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "   💻 ${BOLD}系统:${NC} $OS_INFO   🧠 ${BOLD}内存:${NC} $MEM_INFO"
     echo -e "   🌍 ${BOLD}位置:${NC} $LOCATION ($ISP)"
@@ -226,7 +306,7 @@ main_menu() {
             22) read -p "新端口: " p; sed -i "s/Port .*/Port $p/" /etc/ssh/sshd_config; systemctl restart sshd; echo -e "${GREEN}修改成功！${NC}"; read -n 1 -s -r -p "按任意键继续..." ;;
             23) run_script "哪吒 Agent 卸载" "https://github.com/everett7623/Nezha-cleaner" "bash <(curl -s https://raw.githubusercontent.com/everett7623/Nezha-cleaner/main/nezha-agent-cleaner.sh)" "false" ;;
             
-            24) # 专门为 BBR v3 定制的交互逻辑
+            24) 
                 install_deps "curl"
                 clear
                 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -250,7 +330,6 @@ main_menu() {
                         bash /root/.vps-tcp-tune/tcp.sh
                     fi
                     
-                    # 退出后弹出强提醒
                     echo -e "\n${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
                     echo -e "💡 ${YELLOW}${BOLD}温馨提示：${NC}"
                     echo -e "下次需要管理 BBR 时，${GREEN}无需再次打开本脚本箱${NC}。"
@@ -269,7 +348,7 @@ main_menu() {
             27) run_script "科技Lion工具箱" "https://kejilion.pro" "curl -sS -O https://kejilion.pro/kejilion.sh && chmod +x kejilion.sh && ./kejilion.sh" "false" ;;
             
             0) 
-               echo -e "\n${GREEN}👋 感谢使用，江某人再见！${NC}"; exit 0 ;;
+               echo -e "\n${GREEN}👋 感谢使用，再见！${NC}"; exit 0 ;;
             *) 
                echo -e "\n${RED}❌ 无效输入 [ $choice ]！请选择列表中存在的数字。${NC}"
                read -n 1 -s -r -p "按任意键继续..."
