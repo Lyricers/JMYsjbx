@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ======================================================
-# 脚本名称：江某人的万能脚本箱 (v6.2 improve DNS UI)
+# 脚本名称：江某人的万能脚本箱 (v7.0 OneClickVirt Edition)
 # 核心作者：Gemini
 # 博客地址：op.style
 # ======================================================
@@ -88,7 +88,7 @@ run_script() {
 
 # --- 4. 深度运维逻辑 ---
 
-# 🌟 重制版 DNS 管理器 🌟
+# DNS 管理器
 dns_manager() {
     while true; do
         clear
@@ -225,10 +225,36 @@ swap_manager() {
     esac
 }
 
+# --- oneclickvirt 融合怪专区菜单 ---
+oneclickvirt_ecs() {
+    while true; do
+        clear; show_header
+        echo -e "${BOLD}${CYAN}   >>> 👹 融合怪服务器测评 (oneclickvirt/ecs) ${NC}"
+        echo -e "${CYAN}   --------------------------------------------------------${NC}"
+        echo -e "   ${GREEN}1.${NC} 🌍 国际用户 (无 CDN 加速)"
+        echo -e "   ${GREEN}2.${NC} 🚀 国际/国内用户 (带 CDN 加速 - 推荐)"
+        echo -e "   ${GREEN}3.${NC} 🇨🇳 国内用户 (带 CNB 加速)"
+        echo -e "   ${GREEN}4.${NC} 🔗 短链接方式 1 (bash.spiritlhl.net)"
+        echo -e "   ${GREEN}5.${NC} 🔗 短链接方式 2 (ba.sh)"
+        echo -e "   ${GREEN}0.${NC} 🔙 返回上一级菜单"
+        echo -e "${CYAN}   --------------------------------------------------------${NC}"
+        read -p "   请选择启动方式 [0-5]: " ecs_c
+        case $ecs_c in
+            1) run_script "融合怪测评(无CDN)" "https://github.com/oneclickvirt/ecs" "export noninteractive=true && curl -L https://raw.githubusercontent.com/oneclickvirt/ecs/master/goecs.sh -o goecs.sh && chmod +x goecs.sh && ./goecs.sh install && goecs -l=en" "false"; break ;;
+            2) run_script "融合怪测评(CDN加速)" "https://github.com/oneclickvirt/ecs" "export noninteractive=true && curl -L https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/ecs/master/goecs.sh -o goecs.sh && chmod +x goecs.sh && ./goecs.sh install && goecs -l=en" "false"; break ;;
+            3) run_script "融合怪测评(CNB加速)" "https://github.com/oneclickvirt/ecs" "export noninteractive=true && export CN=true && curl -L https://cnb.cool/oneclickvirt/ecs/-/git/raw/main/goecs.sh -o goecs.sh && chmod +x goecs.sh && ./goecs.sh install && goecs -l=en" "false"; break ;;
+            4) run_script "融合怪测评(短链1)" "https://github.com/oneclickvirt/ecs" "export noninteractive=true && curl -L https://bash.spiritlhl.net/goecs -o goecs.sh && chmod +x goecs.sh && bash goecs.sh install && goecs -l=en" "false"; break ;;
+            5) run_script "融合怪测评(短链2)" "https://github.com/oneclickvirt/ecs" "export noninteractive=true && curl -L https://ba.sh/JrVa -o goecs.sh && chmod +x goecs.sh && ./goecs.sh install && goecs -l=en" "false"; break ;;
+            0) break ;;
+            *) echo -e "\n   ${RED}❌ 无效输入！${NC}"; read -n 1 -s -r -p "   按任意键继续..." ;;
+        esac
+    done
+}
+
 # --- 5. UI 绘制 ---
 show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v6.2 ${NC}"
+    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v7.0 ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "   💻 ${BOLD}系统:${NC} $OS_INFO   🧠 ${BOLD}内存:${NC} $MEM_INFO"
     echo -e "   🌍 ${BOLD}位置:${NC} $LOCATION ($ISP)"
@@ -248,7 +274,7 @@ main_menu() {
         echo -e "${BOLD}${YELLOW} [2] 新机体检项目 ${NC}"
         echo -e " 2. IP 质量检测           3. 网络质量检测"
         echo -e " 4. 硬件质量检测          5. 三网回程路由"
-        echo -e " 6. NodeQuality 检测      7. 融合怪测评 (GO)"
+        echo -e " 6. NodeQuality 检测      7. 融合怪测评 (GO版快链)"
         echo -e " 8. 流媒体解锁检测        9. 流媒体深度检测"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
 
@@ -271,6 +297,11 @@ main_menu() {
         echo -e " 27. 科技Lion工具箱"
         echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
 
+        echo -e "${BOLD}${YELLOW} [6] oneclickvirt 实用脚本合集 ${NC}"
+        echo -e " 28. 融合怪测评 (多节点)  29. 三网回程路由 (Backtrace)"
+        echo -e " 30. IP安全检测 (SC)      31. 流媒体检测模块 (UT)"
+        echo -e "${CYAN} ---------------------------------------------------------- ${NC}"
+
         echo -e "   ${GREEN}0.${NC} ❌ 退出脚本"
         echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo -e "   🌐 ${BOLD}我的个人博客：${BLUE}op.style${NC}"
@@ -285,7 +316,7 @@ main_menu() {
             4) run_script "硬件质量检测" "https://github.com/xykt/HardwareQuality" "bash <(curl -Ls https://Hardware.Check.Place) -y" "false" ;;
             5) run_script "三网回程路由" "https://github.com/zhanghanyun/backtrace" "curl https://raw.githubusercontent.com/zhanghanyun/backtrace/main/install.sh -sSf | sh" "false" ;;
             6) run_script "NodeQuality" "https://github.com/LloydAsp/NodeQuality" "bash <(curl -sL https://run.NodeQuality.com)" "false" ;;
-            7) run_script "融合怪测评" "https://github.com/oneclickvirt/ecs" "export noninteractive=true && curl -L https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/ecs/master/goecs.sh -o goecs.sh && chmod +x goecs.sh && ./goecs.sh install && goecs" "false" ;;
+            7) run_script "融合怪测评(GO)" "https://github.com/oneclickvirt/ecs" "export noninteractive=true && curl -L https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/ecs/master/goecs.sh -o goecs.sh && chmod +x goecs.sh && ./goecs.sh install && goecs" "false" ;;
             8) run_script "流媒体解锁检测" "https://github.com/HsukqiLee/MediaUnlockTest" "bash <(curl -Ls unlock.icmp.ing/scripts/test.sh)" "false" ;;
             9) run_script "流媒体解锁(深)" "https://github.com/1-stream/RegionRestrictionCheck" "bash <(curl -L -s https://raw.githubusercontent.com/1-stream/RegionRestrictionCheck/main/check.sh)" "false" ;;
             
@@ -346,6 +377,12 @@ main_menu() {
                 echo -e "${YELLOW}提示：运行后请配合 ${BLUE}https://dns.akile.ai/${YELLOW} 使用${NC}"
                 run_script "AkileDNS 官方脚本" "https://github.com/akile-network/aktools" "wget -qO- https://raw.githubusercontent.com/akile-network/aktools/refs/heads/main/akdns.sh | bash" "false" ;;
             27) run_script "科技Lion工具箱" "https://kejilion.pro" "curl -sS -O https://kejilion.pro/kejilion.sh && chmod +x kejilion.sh && ./kejilion.sh" "false" ;;
+            
+            # --- 新增：oneclickvirt 专区选项 ---
+            28) oneclickvirt_ecs ;;
+            29) run_script "三网回程路由(Backtrace)" "https://github.com/oneclickvirt/backtrace" "curl https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/backtrace/main/backtrace_install.sh -sSf | bash && backtrace" "false" ;;
+            30) run_script "IP质量检测(SC)" "https://github.com/oneclickvirt/securityCheck" "curl https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/securityCheck/main/sc_install.sh -sSf | bash" "false" ;;
+            31) run_script "流媒体解锁检测(UT)" "https://github.com/oneclickvirt/UnlockTests" "curl https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/UnlockTests/main/ut_install.sh -sSf | bash && ut" "false" ;;
             
             0) 
                echo -e "\n${GREEN}👋 感谢使用，再见！${NC}"; exit 0 ;;
