@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # ======================================================
-# 脚本名称：江某人的万能脚本箱 (v8.0 Ultimate Edition)
-# 核心作者：Gemini (for 江某人)
+# 脚本名称：江某人的万能脚本箱 (v9.0 Quick Launch Edition)
+# 核心作者：Gemini
 # 博客地址：op.style
 # ======================================================
 
@@ -20,7 +20,25 @@ NC='\033[0m'
 # 检查 Root 权限
 [[ $(id -u) != "0" ]] && echo -e "${RED}❌ 错误: 必须使用 root 权限运行！${NC}" && exit 1
 
-# --- 2. 系统信息采集 ---
+# --- 2. 自动设置全局快捷指令 (核心更新) ---
+install_shortcut() {
+    local cmd_name="jmy"
+    local script_url="https://myno.uk/jmx"
+    local bin_path="/usr/local/bin/${cmd_name}"
+    
+    # 兼容某些没有 /usr/local/bin 的系统 (如部分 Alpine 精简版)
+    [ ! -d "/usr/local/bin" ] && bin_path="/usr/bin/${cmd_name}"
+    
+    if [ ! -f "$bin_path" ]; then
+        echo '#!/bin/bash' > "$bin_path"
+        echo "bash <(curl -Ls ${script_url})" >> "$bin_path"
+        chmod +x "$bin_path"
+    fi
+}
+# 启动时静默安装快捷方式
+install_shortcut
+
+# --- 3. 系统信息采集 ---
 get_system_info() {
     if [ -f /etc/os-release ]; then
         OS_RAW=$(cat /etc/os-release | grep -w "ID" | cut -d= -f2 | tr -d '"')
@@ -47,7 +65,7 @@ get_system_info() {
     fi
 }
 
-# --- 3. 核心工具函数 ---
+# --- 4. 核心工具函数 ---
 install_deps() {
     local deps=$@
     if [ "$OS_RAW" = "alpine" ]; then apk add --no-cache $deps
@@ -86,9 +104,7 @@ run_script() {
     read -n 1 -s -r -p "按任意键返回主菜单..."
 }
 
-# --- 4. 深度运维逻辑 ---
-
-# DNS 管理器
+# --- 5. 深度运维逻辑 ---
 dns_manager() {
     while true; do
         clear; echo -e "${CYAN}=== DNS 管理器 ===${NC}"; grep "nameserver" /etc/resolv.conf | nl -w2 -s'. '
@@ -159,7 +175,6 @@ oneclickvirt_ecs() {
     done
 }
 
-# 🌟 为 Dnsmasq + SNIProxy 专属定制的智能安装环境 🌟
 dnsmasq_sniproxy_manager() {
     while true; do
         clear; show_header
@@ -179,10 +194,8 @@ dnsmasq_sniproxy_manager() {
         case $ds_c in
             1|2)
                 echo -e "\n${YELLOW}⚙️  正在进行安装前环境安全检测...${NC}"
-                # 安装依赖以确保端口检测工具可用
                 install_deps "lsof net-tools" >/dev/null 2>&1
                 
-                # 检查 80 和 443 端口
                 if lsof -i:80 -t >/dev/null 2>&1 || lsof -i:443 -t >/dev/null 2>&1; then
                     echo -e "\n${RED}⚠️ 严重警告：检测到 80 或 443 端口已被占用！${NC}"
                     echo -e "${WHITE}这通常是因为你的服务器已经安装了建站面板 (如宝塔/1Panel) 或 Web 服务。${NC}"
@@ -191,7 +204,6 @@ dnsmasq_sniproxy_manager() {
                     [[ "${force_install,,}" != "y" ]] && { echo -e "${YELLOW}已中止安装，按任意键返回...${NC}"; read -n 1 -s -r; continue; }
                 fi
                 
-                # 检查 53 端口并自动修复 systemd-resolved 冲突
                 if lsof -i:53 -t >/dev/null 2>&1; then
                     if systemctl is-active --quiet systemd-resolved; then
                         echo -e "\n${YELLOW}🛠️ 检测到 systemd-resolved 正在占用 53 端口，触发自动修复程序...${NC}"
@@ -216,30 +228,24 @@ dnsmasq_sniproxy_manager() {
                 run_script "卸载 SNIProxy" "https://github.com/myxuchangbin/dnsmasq_sniproxy_install" "wget --no-check-certificate -O dnsmasq_sniproxy.sh https://raw.githubusercontent.com/myxuchangbin/dnsmasq_sniproxy_install/master/dnsmasq_sniproxy.sh && bash dnsmasq_sniproxy.sh -u" "false" 
                 ;;
             4)
-                clear
-                echo -e "${CYAN}=== 🩺 本机核心端口占用扫描 ===${NC}\n"
+                clear; echo -e "${CYAN}=== 🩺 本机核心端口占用扫描 ===${NC}\n"
                 install_deps "lsof" >/dev/null 2>&1
-                
                 echo -e "${YELLOW}[80/443 端口状态 - Web & SNIProxy]${NC}"
                 lsof -i:80,443 || echo "   ✅ 未被占用，状态良好"
-                
                 echo -e "\n${YELLOW}[53 端口状态 - DNS 解析]${NC}"
                 lsof -i:53 || echo "   ✅ 未被占用，状态良好"
-                
                 echo -e "\n${CYAN}==================================${NC}"
-                read -n 1 -s -r -p "按任意键返回..."
-                ;;
+                read -n 1 -s -r -p "按任意键返回..." ;;
             0) break ;;
             *) echo -e "\n${RED}❌ 无效输入！${NC}"; read -n 1 -s -r -p "按任意键继续..." ;;
         esac
     done
 }
 
-
-# --- 5. UI 绘制 ---
+# --- 6. UI 绘制 ---
 show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v8.0 ${NC}"
+    echo -e "${BOLD}${PURPLE}          🎉 江某人的万能脚本箱 ${YELLOW}| ${GREEN}Toolbox v9.0 ${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "   💻 ${BOLD}系统:${NC} $OS_INFO   🧠 ${BOLD}内存:${NC} $MEM_INFO"
     echo -e "   🌍 ${BOLD}位置:${NC} $LOCATION ($ISP)"
@@ -247,7 +253,7 @@ show_header() {
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
-# --- 6. 主平铺页面 ---
+# --- 7. 主平铺页面 ---
 main_menu() {
     while true; do
         get_system_info; clear; show_header
@@ -358,7 +364,11 @@ main_menu() {
             31) run_script "流媒体检测模块(UT)" "https://github.com/oneclickvirt/UnlockTests" "curl https://cdn.spiritlhl.net/https://raw.githubusercontent.com/oneclickvirt/UnlockTests/main/ut_install.sh -sSf | bash && ut" "false" ;;
             
             0) 
-               echo -e "\n${GREEN}👋 感谢使用，再见！${NC}"; exit 0 ;;
+               echo -e "\n${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+               echo -e "💡 ${YELLOW}${BOLD}快捷唤醒提示：${NC}"
+               echo -e "以后只需在终端输入 ${BOLD}${GREEN}jmy${NC} 即可随时一键唤出本脚本箱！"
+               echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+               echo -e "${GREEN}👋 感谢使用，再见！${NC}"; exit 0 ;;
             *) 
                echo -e "\n${RED}❌ 无效输入 [ $choice ]！请选择列表中存在的数字。${NC}"
                read -n 1 -s -r -p "按任意键继续..."
